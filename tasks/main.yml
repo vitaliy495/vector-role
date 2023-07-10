@@ -1,0 +1,59 @@
+---
+    - name: Get package vector
+      ansible.builtin.get_url:
+        url: https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm
+        dest: ./vector-{{ vector_version }}-1.x86_64.rpm
+
+    - name: Install vector package
+      become: true
+      ansible.builtin.yum:
+        name: vector-{{ vector_version }}-1.x86_64.rpm
+        state: present
+      notify: Start Vector service
+
+    - name: Vector config file
+      become: true
+      ansible.builtin.template:
+        src: vector.toml.j2
+        dest: /etc/vector/vector.toml
+        mode: "0755"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid }}"
+
+    - name: Vector systemd service file
+      become: true
+      ansible.builtin.template:
+        src: vector.service.j2
+        dest: /usr/lib/systemd/system/vector.service
+        mode: "0755"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid }}"
+        backup: true
+      notify: Start Vector service
+
+    - name: Add epel-release repo
+      become: true
+      yum:
+        name: epel-release
+        state: present
+    - name: Install nginx
+      become: true
+      yum:
+        name: nginx
+        state: present
+
+    - name: Create nginx config
+      become: true
+      ansible.builtin.template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        mode: 0755
+        backup: true
+
+    - name: Start NGiNX
+      become: true
+      service:
+        name: nginx
+        enabled: true
+        state: restarted
+      notify: Start Vector service
