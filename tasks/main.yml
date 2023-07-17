@@ -14,8 +14,8 @@
     - name: Vector config file
       become: true
       ansible.builtin.template:
-        src: vector.toml.j2
-        dest: /etc/vector/vector.toml
+        src: vector.yml.j2
+        dest: /etc/vector/vector.yml
         mode: "0755"
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid }}"
