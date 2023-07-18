@@ -1,2 +1,22 @@
 ---
 vector_version: "0.30.0"
+clickhouse_host: 127.0.0.1
+vector_config_path: /etc/vector/vector.yaml
+vector_config:
+  sources:
+      nginx_logs:
+        type: file
+        include:
+          - /var/log/nginx/my_access.log
+        read_from: end
+  sinks:
+    clickhouse:
+      type: clickhouse
+      inputs:
+        - nginx_logs
+      database: logs
+      endpoint: http://{{ clickhouse_host }}:8123
+      #endpoint: 'http://{{ hostvars[''clickhouse-01''].ansible_host }}:8123'
+      table: vector_logs
+      compression: gzip
+      skip_unknown_fields: true

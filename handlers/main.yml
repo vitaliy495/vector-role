@@ -1,8 +1,2 @@
 ---
-  - name: Start Vector service
-    become: true
-    ansible.builtin.service:
-      name: vector
-      state: restarted
-    tags:
-      - vector
+# defaults file for vector-role

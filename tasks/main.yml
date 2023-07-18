@@ -1,25 +1,38 @@
 ---
-    - name: Get package vector
+    - name: Get vector package | CentOS
       ansible.builtin.get_url:
         url: https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm
         dest: ./vector-{{ vector_version }}-1.x86_64.rpm
+      when: ansible_facts.distribution == "CentOS"
 
-    - name: Install vector package
+    - name: Get Vector package | Ubuntu
+      ansible.builtin.get_url:
+        url: "https://packages.timber.io/vector/{{ vector_version }}/vector_{{ vector_version }}-1_amd64.deb"
+        dest: "./vector_{{ vector_version }}_amd64.deb"
+      when: ansible_facts.distribution == "Ubuntu"
+    
+    - name: Install vector package | CentOS
       become: true
       ansible.builtin.yum:
         name: vector-{{ vector_version }}-1.x86_64.rpm
         state: present
-      notify: Start Vector service
+      when: ansible_facts.distribution == "CentOS"
+
+    - name: Install vector package | Ubuntu
+      become: true
+      ansible.builtin.apt:
+        deb: vector_{{ vector_version }}_amd64.deb
+        state: present
+      when: ansible_facts.distribution == "Ubuntu"
 
     - name: Vector config file
       become: true
       ansible.builtin.template:
         src: vector.yml.j2
-        dest: /etc/vector/vector.yml
+        dest: /etc/vector/vector.yaml
         mode: "0755"
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid }}"
-
     - name: Vector systemd service file
       become: true
       ansible.builtin.template:
@@ -29,7 +42,6 @@
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid }}"
         backup: true
-      notify: Start Vector service
 
     - name: Add epel-release repo
       become: true
@@ -55,5 +67,13 @@
       service:
         name: nginx
         enabled: true
-        state: restarted
-      notify: Start Vector service
+        state: started
+      when: ansible_facts.virtualization_type != "docker"
+
+    - name: Start Vector service
+      become: true
+      systemd:
+        name: vector
+        enabled: true
+        state: started
+      when: ansible_facts.virtualization_type != "docker"
