@@ -33,7 +33,8 @@
         mode: "0755"
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid }}"
-    - name: Vector systemd service file
+
+    - name: Vector systemd service file | CentOS
       become: true
       ansible.builtin.template:
         src: vector.service.j2
@@ -42,17 +43,39 @@
         owner: "{{ ansible_user_id }}"
         group: "{{ ansible_user_gid }}"
         backup: true
+      when: ansible_facts.distribution == "CentOS"
 
-    - name: Add epel-release repo
+    - name: Vector systemd service file | Ubuntu
+      become: true
+      ansible.builtin.template:
+        src: vector.service.j2
+        dest: /lib/systemd/system/vector.service
+        mode: "0755"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid }}"
+        backup: true
+      when: ansible_facts.distribution == "Ubuntu"
+
+    - name: Add epel-release repo | CentOS
       become: true
       yum:
         name: epel-release
         state: present
-    - name: Install nginx
+      when: ansible_facts.distribution == "CentOS"
+
+    - name: Install nginx | CentOS
       become: true
       yum:
         name: nginx
         state: present
+      when: ansible_facts.distribution == "CentOS"
+
+    - name: Install nginx | Ubuntu
+      become: true
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
 
     - name: Create nginx config
       become: true
