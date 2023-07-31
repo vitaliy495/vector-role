@@ -6,7 +6,7 @@ pipeline {
         stage('Prepare') {
             steps {
                 sh "rm -rf vector-role"
-                sh "git clone -b main git@github.com:vitaliy495/vector-role.git "
+                sh "git clone -b master git@github.com:vitaliy495/vector-role.git "
                 sh "docker pull docker.io/pycontribs/centos:7"
                 sh "docker pull docker.io/pycontribs/ubuntu:latest"
             }
